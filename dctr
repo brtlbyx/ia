@@ -1,0 +1,147 @@
+#!/bin/zsh
+
+# Farben definieren
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+RED="\033[0;31m"
+CYAN="\033[0;36m"
+RESET="\033[0m"
+
+# Standard-Variablen
+COMPOSE_FILE="docker-compose.yml"
+ENV_FILE=".env"
+PROFILE="fallback"
+
+# Funktion für die Hilfe
+handle_help() {
+    echo -e "${CYAN}Verwendung:${RESET} ./dctr <action> [flags]"
+    echo -e "${GREEN}Aktionen:${RESET}"
+    echo -e "  up [flags]            Startet Container. Nutzt das Fallback-Profil, wenn aktiviert."
+    echo -e "  start                 Startet bestehende Container."
+    echo -e "  stop                  Stoppt alle laufenden Container."
+    echo -e "  down                  Entfernt alle Container und zugehörige Ressourcen."
+    echo -e "  fallback [flags]      Startet Container im Fallback-Profil."
+    echo -e "  status                Zeigt den Status aller Container."
+    echo -e "  --help                Zeigt diese Hilfeübersicht an."
+    echo -e "${YELLOW}Beispiele:${RESET}"
+    echo -e "  ./dctr up -d"
+    echo -e "  ./dctr down --remove-orphans"
+    echo -e "  ./dctr fallback"
+    echo -e "  ./dctr status"
+    exit 0
+}
+
+# Funktion, um die .env-Datei zu aktualisieren
+update_env() {
+    local key=$1
+    local value=$2
+    if grep -q "^${key}=" "$ENV_FILE"; then
+        sed -i '' "s/^${key}=.*/${key}=${value}/" "$ENV_FILE"
+    else
+        echo "${key}=${value}" >> "$ENV_FILE"
+    fi
+}
+
+# Funktion, um Umgebungsvariablen aus der .env-Datei zu laden
+load_env() {
+    if [ -f "$ENV_FILE" ]; then
+        echo -e "${GREEN}Lade .env-Datei...${RESET}"
+        # shellcheck disable=SC2046
+        export $(grep -v '^#' "$ENV_FILE" | xargs)
+    else
+        echo -e "${YELLOW}WARNUNG: .env-Datei nicht gefunden. Standardwerte werden verwendet.${RESET}"
+    fi
+}
+
+# Funktion, um Container zu starten oder zu erstellen
+handle_up() {
+    local fallback=$1
+    shift
+
+    if [ "$fallback" = "true" ]; then
+        echo -e "${CYAN}Fallback-Profil aktiv. Starte mit Profil '${PROFILE}'...${RESET}"
+        update_env "APACHE_FALLBACK_ENABLED" "true"
+        docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" up "$@"
+    else
+        echo -e "${CYAN}Starte Standardcontainer...${RESET}"
+        update_env "APACHE_FALLBACK_ENABLED" "false"
+        docker-compose -f "$COMPOSE_FILE" up "$@"
+    fi
+}
+
+# Funktion, um Container zu starten, wenn sie bereits existieren
+handle_start() {
+    echo -e "${CYAN}Starte bestehende Container...${RESET}"
+    docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" start
+}
+
+# Funktion, um Container zu stoppen
+handle_stop() {
+    echo -e "${CYAN}Stoppe alle laufenden Container...${RESET}"
+    docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" stop
+}
+
+# Funktion, um Container und zugehörige Ressourcen zu entfernen
+handle_down() {
+    echo -e "${CYAN}Entferne alle Container und Ressourcen...${RESET}"
+    docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" down --remove-orphans
+    update_env "APACHE_FALLBACK_ENABLED" "false"
+}
+
+# Funktion, um den Fallback-Modus manuell zu starten
+handle_fallback() {
+    echo -e "${CYAN}Manuelles Starten des Fallback-Modus...${RESET}"
+    update_env "APACHE_FALLBACK_ENABLED" "true"
+    docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" up "$@"
+}
+
+# Funktion, um den Status aller Container zu überprüfen
+handle_status() {
+    echo -e "${CYAN}Zeige Status aller Container...${RESET}"
+    docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}"
+}
+
+# Hauptprogramm
+dctr() {
+    # shellcheck disable=SC2034
+    local method_title="./${0##*/}"
+
+    if [ $# -lt 1 ]; then
+        handle_help
+    fi
+
+    # Lade die Umgebungsvariablen
+    load_env
+
+    # Aktionen abhängig vom Befehl
+    case $1 in
+        up)
+            handle_up "${APACHE_FALLBACK_ENABLED}" "${@:2}"
+            ;;
+        start)
+            handle_start
+            ;;
+        stop)
+            handle_stop
+            ;;
+        down)
+            handle_down
+            ;;
+        fallback)
+            handle_fallback "${@:2}"
+            ;;
+        status)
+            handle_status
+            ;;
+        --help)
+            handle_help
+            ;;
+        *)
+            echo -e "${RED}Unbekannte Aktion: $1${RESET}"
+            handle_help
+            ;;
+    esac
+}
+
+# Skript starten
+dctr "$@"

@@ -1,0 +1,188 @@
+#!/bin/bash
+
+# Farben definieren
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+RED="\033[0;31m"
+CYAN="\033[0;36m"
+RESET="\033[0m"
+
+# Funktion für Hilfeausgabe
+handle_help() {
+    echo -e "${CYAN}Verwendung:${RESET} ./build [Befehl] [Optionen]"
+    echo -e "${GREEN}Befehle:${RESET}"
+    echo -e "  start                 Startet den Build-Prozess."
+    echo -e "  reset                 Stoppt, entfernt und baut die Container neu auf."
+    echo -e "  --help                Zeigt diese Hilfeübersicht an."
+    echo -e "${GREEN}Optionen:${RESET}"
+    echo -e "  --project [Name]      Setzt den Projektnamen (Standard: ${COMPOSE_PROJECT_NAME})."
+    echo -e "  --app-name [Name]     Setzt den Container-Namen (Standard: ${CONTAINER_APP_NAME})."
+    echo -e "  --image [Name]        Setzt den Image-Namen (Standard: ${APP_IMAGE})."
+    echo -e "  --tag [Tag]           Setzt den Image-Tag (Standard: ${APP_TAG})."
+    echo -e "  --version [Version]   Setzt die Image-Version (Standard: ${APP_VERSION})."
+    echo -e "  --debug               Aktiviert den Debug-Modus und schreibt die Build-Ausgabe in eine Log-Datei."
+    echo -e "  --no-cache            Verhindert den Einsatz von Cache während des Builds."
+    echo -e "  [docker-compose args] Zusätzliche Argumente, die direkt an docker-compose weitergeleitet werden."
+    echo -e "${YELLOW}Beispiele:${RESET}"
+    echo -e "  ./build start --project myproject --image myimage --tag stable --version v2"
+    echo -e "  ./build start --debug --no-cache"
+    echo -e "  ./build --help"
+    exit 0
+}
+
+# Funktion für die Reset-Option
+handle_reset() {
+    echo -e "${CYAN}Führe Reset-Prozess aus...${RESET}"
+
+    # Stoppe und entferne alle Container und Netzwerke
+    echo -e "${YELLOW}Stoppe und entferne alle Container...${RESET}"
+    docker-compose -p "$COMPOSE_PROJECT_NAME" down -v --remove-orphans || {
+        echo -e "${RED}FEHLER: Konnte Container nicht entfernen.${RESET}"
+        exit 1
+    }
+
+    # Starte den Build-Prozess
+    echo -e "${GREEN}Starte Build-Prozess...${RESET}"
+    ./build start --no-cache || {
+        echo -e "${RED}FEHLER: Build-Prozess fehlgeschlagen.${RESET}"
+        exit 1
+    }
+
+    # Container im Hintergrund starten
+    echo -e "${GREEN}Starte Container im Hintergrund...${RESET}"
+    docker-compose -p "$COMPOSE_PROJECT_NAME" up -d || {
+        echo -e "${RED}FEHLER: Konnte Container nicht starten.${RESET}"
+    }
+
+    echo -e "${GREEN}Reset-Prozess erfolgreich abgeschlossen.${RESET}"
+    exit 0
+}
+
+# Überprüfen, ob mindestens ein Argument übergeben wurde
+if [ "$#" -eq 0 ]; then
+    handle_help
+fi
+
+# Erster Parameter muss ein gültiger Befehl sein
+COMMAND=$1
+shift
+
+case "$COMMAND" in
+    start)
+        echo -e "${CYAN}Starte Build-Prozess...${RESET}"
+        ;;
+    reset)
+        handle_reset
+        ;;
+    --help)
+        handle_help
+        ;;
+    *)
+        echo -e "${RED}Unbekannter Befehl: $COMMAND${RESET}"
+        handle_help
+        ;;
+esac
+
+# Pfad zur .env-Datei
+ENV_FILE=".env"
+
+# 1. Lade die .env-Datei, wenn vorhanden
+if [ -f "$ENV_FILE" ]; then
+    echo -e "${GREEN}Lade .env-Datei...${RESET}"
+    set -a
+    # shellcheck disable=SC1090
+    source "$ENV_FILE"
+    set +a
+else
+    echo -e "${YELLOW}WARNUNG: .env-Datei nicht gefunden. Standardwerte werden verwendet.${RESET}"
+fi
+
+# 2. Standardwerte (Fallbacks)
+DEFAULT_TAG="latest"
+DEFAULT_VERSION="v1"
+DEFAULT_IMAGE="default-app"
+
+# Werte aus .env oder Standardwerte verwenden
+COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME:-ia}
+CONTAINER_APP_NAME=${CONTAINER_APP_NAME:-app}
+APP_IMAGE=${APP_IMAGE:-$DEFAULT_IMAGE}
+APP_TAG=${APP_TAG:-$DEFAULT_TAG}
+APP_VERSION=${APP_VERSION:-$DEFAULT_VERSION}
+
+# Debug-Modus und Docker Compose Argumente
+DEBUG=false
+NO_CACHE=false
+DOCKER_COMPOSE_ARGS=()
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --project)
+            COMPOSE_PROJECT_NAME="$2"
+            shift
+            ;;
+        --app-name)
+            CONTAINER_APP_NAME="$2"
+            shift
+            ;;
+        --image)
+            APP_IMAGE="$2"
+            shift
+            ;;
+        --tag)
+            APP_TAG="$2"
+            shift
+            ;;
+        --version)
+            APP_VERSION="$2"
+            shift
+            ;;
+        --debug)
+            DEBUG=true
+            ;;
+        --no-cache)
+            NO_CACHE=true
+            ;;
+        *) # Alles andere wird als Docker Compose Argument gespeichert
+            DOCKER_COMPOSE_ARGS+=("$1")
+            ;;
+    esac
+    shift
+done
+
+# 3. Zeige Build-Informationen an
+clear
+echo -e "${CYAN}Build-Informationen:${RESET}"
+echo -e "  ${GREEN}Projektname:${RESET} $COMPOSE_PROJECT_NAME"
+echo -e "  ${GREEN}Container-Name:${RESET} $CONTAINER_APP_NAME"
+echo -e "  ${GREEN}Image-Name:${RESET} $APP_IMAGE"
+echo -e "  ${GREEN}Tag:${RESET} $APP_TAG"
+echo -e "  ${GREEN}Version:${RESET} $APP_VERSION"
+echo -e "  ${YELLOW}Debug-Modus:${RESET} $DEBUG"
+echo -e "  ${YELLOW}Kein Cache:${RESET} $NO_CACHE"
+echo -e "----------------------------------------"
+
+# 4. Docker Compose Build ausführen
+BUILD_COMMAND=(docker-compose -p "$COMPOSE_PROJECT_NAME" build "${DOCKER_COMPOSE_ARGS[@]}" \
+    --build-arg APP_IMAGE="$APP_IMAGE" \
+    --build-arg APP_TAG="$APP_TAG" \
+    --build-arg APP_VERSION="$APP_VERSION")
+
+if $NO_CACHE; then
+    BUILD_COMMAND+=("--no-cache")
+fi
+
+if $DEBUG; then
+    echo -e "${YELLOW}Debug-Modus aktiviert. Schreibe Build-Ausgabe...${RESET}"
+    "${BUILD_COMMAND[@]}" | tee build_output.log
+else
+    echo -e "${GREEN}Starte normalen Build-Prozess...${RESET}"
+    "${BUILD_COMMAND[@]}"
+fi
+
+# Erfolgsmeldung oder Fehlerausgabe
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}Build erfolgreich abgeschlossen: ${APP_IMAGE}:${APP_TAG}${RESET}"
+else
+    echo -e "${RED}FEHLER: Build fehlgeschlagen.${RESET}"
+    exit 1
+fi
