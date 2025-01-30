@@ -44,13 +44,15 @@ update_env() {
 
 # Funktion, um Umgebungsvariablen aus der .env-Datei zu laden
 load_env() {
-    if [ -f "$ENV_FILE" ]; then
-        echo -e "${GREEN}Lade .env-Datei...${RESET}"
-        # shellcheck disable=SC2046
-        export $(grep -v '^#' "$ENV_FILE" | xargs)
-    else
-        echo -e "${YELLOW}WARNUNG: .env-Datei nicht gefunden. Standardwerte werden verwendet.${RESET}"
-    fi
+  if grep -q "^${key}=" "$ENV_FILE"; then
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+          sed -i '' "s/^${key}=.*/${key}=${value}/" "$ENV_FILE"
+      else
+          sed -i "s/^${key}=.*/${key}=${value}/" "$ENV_FILE"
+      fi
+  else
+      echo "${key}=${value}" >> "$ENV_FILE"
+  fi
 }
 
 # Funktion, um Container zu starten oder zu erstellen
