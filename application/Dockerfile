@@ -1,6 +1,8 @@
 # Verwende das offizielle PHP-Apache-Image
 FROM php:8.3.0-apache
 
+
+
 RUN mkdir -p /usr/share/man/man1
 
 # Setze das Apache DocumentRoot auf das "public"-Verzeichnis
@@ -56,8 +58,13 @@ COPY ./app ./
 RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/*.conf && \
     sed -ri -e "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-## Setze die richtigen Zugriffsberechtigungen
-RUN chown -R 504:20 /app/public
+
+RUN mkdir -p /home/app && \
+    chown 504:20 /home/app && \
+    chmod 750 /home/app
+RUN  echo 'export PATH="$HOME/.config/composer/vendor/bin:$PATH"' >> ~/.bashrc
+
+USER 504:20
 
 ## Starte Apache, wenn der Container hochfährt
 CMD ["apache2-foreground"]

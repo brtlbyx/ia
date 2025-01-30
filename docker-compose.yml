@@ -39,6 +39,7 @@ services:
       context: ./application
       dockerfile: Dockerfile
     container_name: app
+    user: "504:20"
     depends_on:
       - db
     environment:
