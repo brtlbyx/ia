@@ -48,8 +48,8 @@ services:
       - DB_PASSWORD=${MYSQL_PASSWORD}
       - DB_DATABASE=${MYSQL_DATABASE}
       - DB_PORT=3306
-      - APACHE_RUN_USER=#${RUN_UID}
-      - APACHE_RUN_GROUP=#${RUN_GID}
+      - APACHE_RUN_USER=${APACHE_RUN_USER}
+      - APACHE_RUN_GROUP=${APACHE_RUN_GROUP}
       - USER_ID=${RUN_UID}
       - GROUP_ID=${RUN_GID}
       - APACHE_LOG_DIR=/var/log/apache2
