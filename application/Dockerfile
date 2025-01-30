@@ -30,11 +30,15 @@ RUN apt-get update \
     openssl \
     curl \
     zip \
-    unzip
+    unzip \
+    npm
 
 RUN pecl install redis
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN docker-php-ext-configure pcntl --enable-pcntl \
+    && docker-php-ext-install pcntl
 
 ## Installiere zusätzliche PHP-Erweiterungen (falls benötigt, z. B. mysqli für Datenbankverbindungen)
 RUN docker-php-ext-install -j "$(nproc)" mysqli pdo pdo_mysql pdo_sqlite opcache intl
