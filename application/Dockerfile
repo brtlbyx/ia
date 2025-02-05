@@ -33,6 +33,9 @@ RUN apt-get update \
     unzip \
     npm
 
+RUN npm install -g sass
+RUN npm install -D tailwindcss postcss autoprefixer sass
+
 RUN pecl install redis
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
