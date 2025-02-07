@@ -31,7 +31,8 @@ RUN apt-get update \
     curl \
     zip \
     unzip \
-    npm
+    npm \
+    mariadb-client
 
 RUN npm install -g sass
 RUN npm install -D tailwindcss postcss autoprefixer sass

@@ -12,7 +12,6 @@ services:
       - app
 
     volumes:
-
       - ./docker/etc/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./docker/etc/nginx/snippets/snakeoil.conf:/etc/nginx/snippets/ssl.conf
       - ./docker/etc/nginx/snakeoil:/etc/nginx/snakeoil
@@ -59,6 +58,8 @@ services:
       - ./docker/etc/passwd:/etc/passwd:ro
       - ./docker/etc/group:/etc/group:ro
       - ./docker/var/logs:/var/log
+      - ./docker/etc/nginx/snakeoil/ssl-cert-snakeoil.pem:/etc/nginx/snakeoil/ssl-cert-snakeoil.pem
+      - ./docker/etc/nginx/snakeoil/ssl-cert-snakeoil.key:/etc/nginx/snakeoil/ssl-cert-snakeoil.key
     command: >
       sh -c "rm -rf /var/log/apache2/* && apache2-foreground -c 'ServerName localhost'"
     networks:
@@ -78,6 +79,7 @@ services:
       - MYSQL_USER=${MYSQL_USERNAME:-app}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-4pp}
       - MYSQL_DATABASE=${MYSQL_DATABASE:-app}
+      - TZ=Europe/Berlin
 
 volumes:
   db-storage:
