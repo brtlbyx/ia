@@ -63,30 +63,30 @@ handle_up() {
     if [ "$fallback" = "true" ]; then
         echo -e "${CYAN}Fallback-Profil aktiv. Starte mit Profil '${PROFILE}'...${RESET}"
         update_env "APACHE_FALLBACK_ENABLED" "true"
-        docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" up "$@"
+        docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" -f docker-compose-dev.yml up "$@"
     else
         echo -e "${CYAN}Starte Standardcontainer...${RESET}"
         update_env "APACHE_FALLBACK_ENABLED" "false"
-        docker-compose -f "$COMPOSE_FILE" up "$@"
+        docker-compose -f "$COMPOSE_FILE" -f docker-compose-dev.yml up "$@"
     fi
 }
 
 # Funktion, um Container zu starten, wenn sie bereits existieren
 handle_start() {
     echo -e "${CYAN}Starte bestehende Container...${RESET}"
-    docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" start
+    docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" -f docker-compose-dev.yml start
 }
 
 # Funktion, um Container zu stoppen
 handle_stop() {
     echo -e "${CYAN}Stoppe alle laufenden Container...${RESET}"
-    docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" stop
+    docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" -f docker-compose-dev.yml  stop
 }
 
 # Funktion, um Container und zugehörige Ressourcen zu entfernen
 handle_down() {
     echo -e "${CYAN}Entferne alle Container und Ressourcen...${RESET}"
-    docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" down --remove-orphans
+    docker-compose --profile "debug" -f "$COMPOSE_FILE" -f docker-compose-dev.yml down --remove-orphans
     update_env "APACHE_FALLBACK_ENABLED" "false"
 }
 
@@ -94,7 +94,7 @@ handle_down() {
 handle_fallback() {
     echo -e "${CYAN}Manuelles Starten des Fallback-Modus...${RESET}"
     update_env "APACHE_FALLBACK_ENABLED" "true"
-    docker-compose --profile "$PROFILE" -f "$COMPOSE_FILE" up "$@"
+    docker-compose --profile "debug" -f "$COMPOSE_FILE"  -f docker-compose-dev.yml up "$@"
 }
 
 # Funktion, um den Status aller Container zu überprüfen
