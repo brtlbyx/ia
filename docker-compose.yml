@@ -57,11 +57,11 @@ services:
       sh -c "rm -rf /var/log/apache2/* && apache2-foreground -c 'ServerName localhost'"
     networks:
       - network
-
-
   proxy:
     container_name: proxy
-    image: nginx:1.17.8
+    build:
+      context: ./docker/proxy
+      dockerfile: Dockerfile
     restart: always
     depends_on:
       app:
