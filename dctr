@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # Farben definieren
 GREEN="\033[0;32m"
@@ -9,7 +9,7 @@ RESET="\033[0m"
 
 # Standard-Variablen
 COMPOSE_FILE="docker-compose.yml"
-ENV_FILE=".env"
+ENV_FILE="$(pwd)/.env"
 PROFILE="fallback"
 
 # Funktion für die Hilfe
@@ -35,8 +35,14 @@ handle_help() {
 update_env() {
     local key=$1
     local value=$2
+
+    if [[ ! -f "$ENV_FILE" ]]; then
+        echo -e "${RED}Fehler: Die Umgebungsdatei $ENV_FILE wurde nicht gefunden!${RESET}"
+        exit 1
+    fi
+
     if grep -q "^${key}=" "$ENV_FILE"; then
-        sed -i '' "s/^${key}=.*/${key}=${value}/" "$ENV_FILE"
+        sed -i "s/^${key}=.*/${key}=${value}/" "$ENV_FILE"
     else
         echo "${key}=${value}" >> "$ENV_FILE"
     fi
@@ -44,15 +50,16 @@ update_env() {
 
 # Funktion, um Umgebungsvariablen aus der .env-Datei zu laden
 load_env() {
-  if grep -q "^${key}=" "$ENV_FILE"; then
-      if [[ "$OSTYPE" == "darwin"* ]]; then
-          sed -i '' "s/^${key}=.*/${key}=${value}/" "$ENV_FILE"
-      else
-          sed -i "s/^${key}=.*/${key}=${value}/" "$ENV_FILE"
-      fi
-  else
-      echo "${key}=${value}" >> "$ENV_FILE"
-  fi
+    if [[ ! -f "$ENV_FILE" ]]; then
+        echo -e "${RED}Fehler: Die Umgebungsdatei $ENV_FILE wurde nicht gefunden!${RESET}"
+        exit 1
+    fi
+
+    while IFS='=' read -r key value; do
+        # Ignoriert leere Zeilen und Kommentare
+        [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
+        export "$key"="$value"
+    done < "$ENV_FILE"
 }
 
 # Funktion, um Container zu starten oder zu erstellen

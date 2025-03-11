@@ -1,5 +1,5 @@
 app:x:20:app
-www-data2:x:1001:
+www-data:x:1001:
 _apt:*:17121:0:99999:7:::
 root:x:0:
 daemon:x:1:

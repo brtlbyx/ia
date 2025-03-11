@@ -68,11 +68,11 @@ RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-av
 
 
 RUN mkdir -p /home/app && \
-    chown 504:20 /home/app && \
+    chown www-data:www-data /home/app && \
     chmod 750 /home/app
 RUN  echo 'export PATH="$HOME/.config/composer/vendor/bin:$PATH"' >> ~/.bashrc
 
-USER 504:20
+# USER 10000:1003
 
 ## Starte Apache, wenn der Container hochfährt
 CMD ["apache2-foreground"]
