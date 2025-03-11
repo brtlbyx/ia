@@ -1,11 +1,11 @@
 networks:
   network:
     driver: bridge
-    name: hub
+    name: konnektado-hub
 
 services:
   db:
-    container_name: db
+    container_name: konnektado-db
     build:
       context: ./db
       dockerfile: Dockerfile
@@ -28,7 +28,7 @@ services:
       dockerfile: Dockerfile
       args:
         - COMPOSE_BAKE=true
-    container_name: app
+    container_name: konnektado-app
     depends_on:
       - db
     healthcheck:
@@ -63,7 +63,7 @@ services:
     networks:
       - network
   proxy:
-    container_name: proxy
+    container_name: konnektado-proxy
     build:
       context: ./proxy
       dockerfile: Dockerfile
