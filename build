@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
 # Farben definieren
 GREEN="\033[0;32m"
 YELLOW="\033[0;33m"
