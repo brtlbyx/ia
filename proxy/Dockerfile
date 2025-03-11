@@ -1,5 +1,7 @@
 FROM nginx:1.17.8
 
+COPY etc/nginx/snakeoil/ /etc/nginx/snakeoil/
+
 # Setze die richtigen Dateirechte direkt im Image
 RUN chmod 640 /etc/nginx/snakeoil/ssl-cert-snakeoil.key && \
     chmod 644 /etc/nginx/snakeoil/ssl-cert-snakeoil.pem && \
