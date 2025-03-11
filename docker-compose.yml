@@ -60,7 +60,7 @@ services:
   proxy:
     container_name: proxy
     build:
-      context: ./docker/proxy
+      context: proxy
       dockerfile: Dockerfile
     restart: always
     depends_on:
