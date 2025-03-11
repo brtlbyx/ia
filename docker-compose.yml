@@ -97,4 +97,4 @@ services:
 
 volumes:
   db-storage:
-    name: ia-app-db-storage
+    name: ia-app-brtlbyntwrk-db-storage
