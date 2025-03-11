@@ -69,7 +69,8 @@ services:
     volumes:
       - ./docker/etc/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./docker/etc/nginx/snippets/snakeoil.conf:/etc/nginx/snippets/ssl.conf
-      - ./docker/etc/nginx/snakeoil:/etc/nginx/snakeoil
+      - ./docker/etc/nginx/snakeoil/ssl-cert-snakeoil.key:/etc/nginx/snakeoil/ssl-cert-snakeoil.key
+      - ./docker/etc/nginx/snakeoil/ssl-cert-snakeoil.pem:/etc/nginx/snakeoil/ssl-cert-snakeoil.pem
       - ./docker/etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
       - ./docker/etc/nginx/snippets/server_ssl_app.conf:/etc/nginx/snippets/server_ssl_app.conf
       - ./docker/etc/nginx/snippets/server_websocket.conf:/etc/nginx/snippets/server_websocket.conf
