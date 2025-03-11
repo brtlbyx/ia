@@ -6,7 +6,7 @@ FROM php:8.3.0-apache
 RUN mkdir -p /usr/share/man/man1
 
 # Setze das Apache DocumentRoot auf das "public"-Verzeichnis
-ENV APACHE_DOCUMENT_ROOT /app/public
+ENV APACHE_DOCUMENT_ROOT=/app/public
 
 # Install locales and set the default locale
 RUN apt-get update && apt-get install -y locales \

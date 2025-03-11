@@ -11,4 +11,4 @@ RUN chmod 640 /etc/nginx/snakeoil/ssl-cert-snakeoil.key && \
 RUN mkdir -p /var/run/nginx && rm -rf /var/log/nginx/*
 
 # Starte Nginx mit automatischem Reload alle 6 Stunden
-CMD sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
+CMD ["sh", "-c", "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"]
