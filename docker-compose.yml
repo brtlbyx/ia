@@ -7,14 +7,14 @@ services:
   db:
     container_name: db
     build:
-      context: ./application
+      context: ./db
       dockerfile: Dockerfile
     ports:
       - 127.0.0.1:${MYSQL_LOCAL_PORT}:3306
     networks:
       - network
     volumes:
-      - ./etc/mysql/my.cnf:/etc/mysql/my.cnf
+      - ./db/etc/mysql/my.cnf:/etc/mysql/my.cnf
       - db-storage:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-"r00t"}
