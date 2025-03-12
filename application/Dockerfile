@@ -32,7 +32,9 @@ RUN apt-get update \
     zip \
     unzip \
     npm \
-    mariadb-client
+    mariadb-client \
+    msmtp  \
+    msmtp-mta
 
 RUN npm install -g sass
 RUN npm install -D tailwindcss postcss autoprefixer sass
