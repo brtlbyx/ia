@@ -9,6 +9,7 @@ services:
     build:
       context: ./db
       dockerfile: Dockerfile
+    restart: always
     ports:
       - 127.0.0.1:${MYSQL_LOCAL_PORT}:3306
     networks:
@@ -28,6 +29,7 @@ services:
       dockerfile: Dockerfile
       args:
         - COMPOSE_BAKE=true
+    restart: always
     container_name: konnektado-app
     depends_on:
       - db
