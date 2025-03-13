@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y locales \
     && locale-gen de_DE.UTF-8 \
     && update-locale LANG=de_DE.UTF-8
 
-RUN apt-get update \
+RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
     pkg-config \
     software-properties-common \
@@ -40,7 +40,7 @@ RUN apt-get update \
     mariadb-client \
     msmtp  \
     msmtp-mta
-
+	
 RUN npm install -g sass
 RUN npm install -D tailwindcss postcss autoprefixer sass
 
@@ -76,9 +76,6 @@ RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-av
 RUN mkdir -p /app && \
     chown www-data:www-data /app && \
     chmod 750 /app
-
-# Schreibe den Commit-Hash in die index.php
-RUN echo "<?php define('COMMIT_HASH', '${COMMIT_HASH}');" > /public/version.php
 
 RUN  echo 'export PATH="$HOME/.config/composer/vendor/bin:$PATH"' >> ~/.bashrc
 

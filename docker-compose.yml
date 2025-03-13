@@ -30,7 +30,6 @@ services:
       args:
         - SMTP_USER=${SMTP_USER}
         - SMTP_PASSWORD=${SMTP_PASSWORD}
-        - COMMIT_HASH=$(git rev-parse HEAD)
     container_name: brtlbyntwrk-app
     depends_on:
       - db
