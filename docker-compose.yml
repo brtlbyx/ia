@@ -1,14 +1,15 @@
 networks:
   network:
     driver: bridge
-    name: konnektado-hub
+    name: brtlbyntwrk-hub
 
 services:
   db:
-    container_name: konnektado-db
+    container_name: brtlbyntwrk-db
     build:
       context: ./db
       dockerfile: Dockerfile
+    restart: always
     ports:
       - 127.0.0.1:${MYSQL_LOCAL_PORT}:3306
     networks:
@@ -27,10 +28,13 @@ services:
       context: ./application
       dockerfile: Dockerfile
       args:
-        - COMPOSE_BAKE=true
-    container_name: konnektado-app
+        - SMTP_USER=${SMTP_USER}
+        - SMTP_PASSWORD=${SMTP_PASSWORD}
+        - COMMIT_HASH=$(git rev-parse HEAD)
+    container_name: brtlbyntwrk-app
     depends_on:
       - db
+    restart: always
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost/up" ]
       interval: 5s
@@ -38,6 +42,8 @@ services:
       start_period: 5s
       timeout: 5s
     environment:
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
       - TZ=Europe/Berlin
       - DB_HOST=${DB_HOST}
       - DB_USERNAME=${MYSQL_USERNAME}
@@ -53,8 +59,8 @@ services:
       - ./application/app:/app
       - ./docker/etc/passwd:/etc/passwd:ro
       - ./docker/etc/group:/etc/group:ro
-      - ./docker/etc/nginx/snakeoil/ssl-cert-snakeoil.pem:/etc/nginx/snakeoil/ssl-cert-snakeoil.pem
-      - ./docker/etc/nginx/snakeoil/ssl-cert-snakeoil.key:/etc/nginx/snakeoil/ssl-cert-snakeoil.key
+      - ./proxy/etc/nginx/snakeoil/ssl-cert-snakeoil.pem:/etc/nginx/snakeoil/ssl-cert-snakeoil.pem
+      - ./proxy/etc/nginx/snakeoil/ssl-cert-snakeoil.key:/etc/nginx/snakeoil/ssl-cert-snakeoil.key
     command:
       [
         "sh", "-c",
@@ -63,7 +69,7 @@ services:
     networks:
       - network
   proxy:
-    container_name: konnektado-proxy
+    container_name: brtlbyntwrk-proxy
     build:
       context: ./proxy
       dockerfile: Dockerfile
@@ -97,4 +103,4 @@ services:
 
 volumes:
   db-storage:
-    name: ia-app-konnektado-db-storage
+    name: ia-app-brtlbyntwrk-db-storage
