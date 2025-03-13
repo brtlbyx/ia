@@ -6,6 +6,7 @@ networks:
 services:
   db:
     container_name: db
+    restart: always
     image: mariadb:10.3
     ports:
       - 127.0.0.1:${MYSQL_LOCAL_PORT}:3306
@@ -21,11 +22,12 @@ services:
       - MYSQL_DATABASE=${MYSQL_DATABASE:-app}
       - TZ=Europe/Berlin
   app:
+    container_name: app
+    restart: always
     build:
       context: ./application
       dockerfile: Dockerfile
-    container_name: app
-    user: "504:20"
+    #    user: "504:20"
     depends_on:
       - db
     healthcheck:
